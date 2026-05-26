@@ -173,6 +173,15 @@ canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; poin
       <!-- ── Settings Section ── -->
       <div class="page-section" id="section-settings">
         <div class="card">
+          <div class="section-title">个人信息</div>
+          <div class="form-group"><label>昵称</label><input type="text" id="infoName" placeholder="你的昵称"></div>
+          <div class="form-group"><label>邮箱</label><input type="email" id="infoEmail" placeholder="邮箱" disabled style="opacity:0.6;"></div>
+          <div class="form-group"><label>手机号</label><input type="tel" id="infoPhone" placeholder="手机号"></div>
+          <div class="alert success" id="infoOk">个人信息已更新</div>
+          <div class="alert error" id="infoErr">更新失败</div>
+          <button class="btn-full" onclick="updateProfile()" id="infoBtn">保存修改</button>
+        </div>
+        <div class="card">
           <div class="section-title">修改密码</div>
           <div class="form-group"><label>当前密码</label><input type="password" id="oldPw" placeholder="输入当前密码"></div>
           <div class="form-group"><label>新密码</label><input type="password" id="newPw" placeholder="至少6位"></div>
@@ -378,6 +387,48 @@ async function changePassword() {
     document.getElementById('oldPw').value = ''; document.getElementById('newPw').value = ''; document.getElementById('confirmPw').value = '';
   } catch(e) { document.getElementById('pwErr').textContent = e.message; document.getElementById('pwErr').style.display = 'block'; }
 }
+
+// ── Settings: Load info ──
+function loadProfile() {
+  try {
+    const u = document.getElementById('userName').textContent;
+    const e = document.getElementById('userEmail').textContent;
+    if (u && u !== '加载中...') document.getElementById('infoName').value = u;
+    if (e) document.getElementById('infoEmail').value = e;
+    // Also load phone if available from /me
+    const d = api('/me').then(r => {
+      if (r.user && r.user.phone) document.getElementById('infoPhone').value = r.user.phone;
+    }).catch(() => {});
+  } catch(e) {}
+}
+
+// ── Settings: Update info ──
+async function updateProfile() {
+  const name = document.getElementById('infoName').value.trim();
+  const phone = document.getElementById('infoPhone').value.trim();
+  if (!name) { document.getElementById('infoErr').textContent = '昵称不能为空'; document.getElementById('infoErr').style.display = 'block'; return; }
+  document.getElementById('infoBtn').disabled = true; document.getElementById('infoBtn').textContent = '保存中...';
+  try {
+    await api('/auth/update-profile', { method:'POST', body: JSON.stringify({ name, phone }) });
+    document.getElementById('infoOk').style.display = 'block';
+    document.getElementById('infoErr').style.display = 'none';
+    document.getElementById('userName').textContent = name;
+    document.getElementById('avatarLetter').textContent = name[0];
+    setTimeout(() => document.getElementById('infoOk').style.display = 'none', 3000);
+  } catch(e) { document.getElementById('infoErr').textContent = e.message; document.getElementById('infoErr').style.display = 'block'; }
+  document.getElementById('infoBtn').disabled = false; document.getElementById('infoBtn').textContent = '保存修改';
+}
+
+// Add settings tab loading to switchSection
+const origSwitch = switchSection;
+switchSection = function(name) {
+  currentSection = name;
+  document.querySelectorAll('.sidebar-menu a[data-section]').forEach(a => a.classList.toggle('active', a.dataset.section === name));
+  document.querySelectorAll('.page-section').forEach(s => s.classList.toggle('active', s.id === 'section-' + name));
+  if (name === 'orders') loadOrders();
+  if (name === 'address') loadAddresses();
+  if (name === 'settings') loadProfile();
+};
 </script>
 </body>
 </html>

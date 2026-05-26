@@ -239,6 +239,15 @@ module.exports = async (req, res) => {
       return res.json({ message: '密码修改成功' });
     }
 
+    // POST /auth/update-profile
+    if (path === '/auth/update-profile' && req.method === 'POST') {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      const { name, phone } = body;
+      if (!name) return res.status(400).json({ error: '昵称不能为空' });
+      await q('UPDATE users SET name=$1, phone=$2 WHERE id=$3', [name, phone || '', u.id]);
+      return res.json({ message: '个人信息已更新', user: { id: u.id, name, email: u.email, phone: phone || '' } });
+    }
+
     // Addresses
     await q(`CREATE TABLE IF NOT EXISTS addresses (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id), name TEXT NOT NULL, phone TEXT NOT NULL, address TEXT NOT NULL, detail TEXT DEFAULT '', is_default BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`).catch(()=>{});
 
