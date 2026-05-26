@@ -10,10 +10,13 @@ function pool() {
     let vdb;
     try {
       vdb = require('@vercel/postgres');
-      _pool = vdb;
-      console.log('✅ Using @vercel/postgres');
-      return _pool;
-    } catch {}
+      _pool = vdb.createPool();
+      if (typeof _pool.query === 'function') {
+        console.log('✅ Using @vercel/postgres.createPool()');
+        return _pool;
+      }
+    } catch (e) {}
+    // Fallback to pg
     const { Pool } = require('pg');
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     _pool = new Pool({
@@ -25,10 +28,13 @@ function pool() {
   return _pool;
 }
 
-async function q(sql, params) {
+async function q(sqlStr, params) {
   const p = pool();
   if (!p) throw new Error('数据库未连接');
-  return p.query(sql, params);
+  // @vercel/postgres uses sql template function or sql.query()
+  if (typeof p.query === 'function') return p.query(sqlStr, params);
+  // @vercel/postgres: use sql.query() for raw queries
+  return p.query(sqlStr, params);
 }
 
 let _jwt = null;
