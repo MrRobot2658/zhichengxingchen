@@ -6,13 +6,21 @@ function pool() {
   const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (!url) return null;
   try {
+    // Use @vercel/postgres if available (handles SSL correctly), else fallback to pg
+    let vdb;
+    try {
+      vdb = require('@vercel/postgres');
+      _pool = vdb;
+      console.log('✅ Using @vercel/postgres');
+      return _pool;
+    } catch {}
     const { Pool } = require('pg');
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     _pool = new Pool({
       connectionString: url,
-      connectionTimeoutMillis: 10000,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
     });
-    // Test connection immediately
-    _pool.query('SELECT 1').catch(e => console.error('pg test query failed:', e.message));
   } catch (e) { console.error('pg err:', e.message); }
   return _pool;
 }
