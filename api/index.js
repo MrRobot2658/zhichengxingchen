@@ -43,7 +43,7 @@ function jwt() {
   try { _jwt = require('jsonwebtoken'); } catch {}
   return _jwt;
 }
-const JWT_SECRET = process.env.JWT_SECRET || 'zcx-' + Date.now();
+const JWT_SECRET = process.env.JWT_SECRET || 'zcx-fixed-secret-for-production-use-2026';
 function sign(u) {
   const j = jwt();
   if (j) return j.sign({ id: u.id, email: u.email, name: u.name }, JWT_SECRET, { expiresIn: '7d' });
