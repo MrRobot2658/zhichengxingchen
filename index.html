@@ -407,15 +407,12 @@ footer p { color:var(--text-3); font-size:13px; }
   <div class="nav-logo">✦ 知诚星辰</div>
   <div class="nav-links">
     <a href="/">首页</a>
-    <a href="/#about">关于</a>
     <a href="/#product">产品</a>
     <a href="/#vision">大脑</a>
-    <a href="/#pricing">定价</a>
-    <a href="/#contact">联系</a>
+    <a href="/#about">关于我们</a>
     <a href="/login.html" id="navLogin">登录</a>
     <a href="/account.html" id="navAccount" style="display:none"></a>
     <a href="/account.html" id="navOrders" style="display:none">我的订单</a>
-    <a href="/login.html" class="nav-cta" id="navBuy">立即购买</a>
   </div>
   <script>
     (function() {
@@ -428,7 +425,6 @@ footer p { color:var(--text-3); font-size:13px; }
           if (confirm('确定退出？')) { localStorage.removeItem('zcx_token'); window.location.href = '/'; }
         };
         document.getElementById('navOrders').style.display = '';
-        document.getElementById('navBuy').href = '/order.html';
         const acct = document.getElementById('navAccount');
         acct.style.display = '';
         // Decode username from JWT (handle UTF-8 Chinese)
