@@ -9,7 +9,7 @@ function pool() {
     const { Pool } = require('pg');
     _pool = new Pool({
       connectionString: url,
-      ssl: { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: false, sslmode: 'require' },
       connectionTimeoutMillis: 10000,
     });
   } catch (e) { console.error('pg err:', e.message); }
