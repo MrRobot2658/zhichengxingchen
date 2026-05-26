@@ -2,13 +2,25 @@ const { Pool } = require('pg');
 const { createHash, randomBytes } = require('crypto');
 const nodemailer = require('nodemailer');
 
-// ── 数据库 ──
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+// ── 数据库（安全初始化） ──
+let pool = null;
+try {
+  if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
+    const { Pool } = require('pg');
+    pool = new Pool({
+      connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 3000,
+    });
+    console.log('✅ Postgres pool created');
+  } else {
+    console.log('⚠️ POSTGRES_URL not set, DB features disabled');
+  }
+} catch (e) {
+  console.error('❌ Postgres init failed:', e.message);
+}
 
-// ── Gmail ──
+// ── Gmail（安全初始化） ──
 let transporter = null;
 function getMailer() {
   if (transporter) return transporter;
@@ -197,8 +209,21 @@ module.exports = async (req, res) => {
 
     // GET /health
     if (path === '/health' && req.method === 'GET') {
-      const { rows } = await pool.query('SELECT NOW() as t');
-      return res.json({ status: 'ok', db: rows[0]?.t, uptime: process.uptime() });
+      let dbOk = false, dbTime = null;
+      try {
+        if (pool) {
+          const { rows } = await pool.query('SELECT NOW() as t');
+          dbOk = true;
+          dbTime = rows[0]?.t;
+        }
+      } catch (e) { dbOk = false; }
+      return res.json({
+        status: dbOk ? 'ok' : 'degraded',
+        db: dbTime,
+        db_connected: dbOk,
+        env: { pg: !!process.env.POSTGRES_URL, gmail: !!process.env.GMAIL_USER },
+        uptime: process.uptime(),
+      });
     }
 
     return res.status(404).json({ error: 'Not found' });
