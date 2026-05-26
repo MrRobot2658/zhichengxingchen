@@ -10,32 +10,52 @@
 :root {
   --ink: #0a0a0f; --surface: #101018; --surface-2: #181825; --border: #2a2a45;
   --text: #e8e8f0; --text-2: #9898b8; --text-3: #606080;
-  --accent: #6c5ce7; --accent-soft: #a29bfe; --accent-glow: rgba(108,92,231,0.3);
+  --accent: #6c5ce7; --accent-soft: #a29bfe;
   --radius: 16px; --radius-sm: 10px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Noto Sans SC',-apple-system,sans-serif; background:var(--ink); color:var(--text); line-height:1.6; }
+body { font-family:'Noto Sans SC',-apple-system,sans-serif; background:var(--ink); color:var(--text); line-height:1.6; min-height:100vh; }
 canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
-.page { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:30px 20px 80px; }
-.nav-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+.page { position:relative; z-index:1; max-width:1060px; margin:0 auto; padding:24px 20px 60px; }
+
+/* ── Top Nav ── */
+.nav-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
 .nav-top .logo { font-weight:700; font-size:18px; background:linear-gradient(135deg,var(--accent-soft),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
 .nav-top a { color:var(--text-2); text-decoration:none; font-size:14px; transition:color 0.2s; }
 .nav-top a:hover { color:var(--accent-soft); }
-.user-header { display:flex; align-items:center; gap:16px; padding:24px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:28px; }
-.user-avatar { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-soft)); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#fff; flex-shrink:0; }
-.user-info .name { font-size:18px; font-weight:700; }
-.user-info .email { font-size:13px; color:var(--text-2); margin-top:2px; }
-.tabs { display:flex; gap:4px; margin-bottom:24px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:4px; }
-.tab { flex:1; padding:12px; text-align:center; font-size:14px; font-weight:500; color:var(--text-2); cursor:pointer; border-radius:8px; transition:all 0.2s; }
-.tab:hover { color:var(--text); background:var(--surface-2); }
-.tab.active { color:var(--accent-soft); background:rgba(108,92,231,0.12); }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
+
+/* ── Layout: sidebar + content ── */
+.layout { display:grid; grid-template-columns:240px 1fr; gap:24px; align-items:start; }
+
+/* ── Sidebar ── */
+.sidebar { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; position:sticky; top:24px; }
+.sidebar-user { padding:20px; text-align:center; border-bottom:1px solid var(--border); }
+.sidebar-avatar { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-soft)); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:#fff; margin:0 auto 10px; }
+.sidebar-user .name { font-size:15px; font-weight:600; }
+.sidebar-user .email { font-size:12px; color:var(--text-2); margin-top:2px; }
+.sidebar-menu { list-style:none; padding:8px 0; }
+.sidebar-menu li { }
+.sidebar-menu a {
+  display:flex; align-items:center; gap:10px; padding:12px 20px;
+  color:var(--text-2); text-decoration:none; font-size:14px; font-weight:500;
+  transition:all 0.15s; border-left:3px solid transparent;
+}
+.sidebar-menu a:hover { background:var(--surface-2); color:var(--text); }
+.sidebar-menu a.active { background:rgba(108,92,231,0.08); color:var(--accent-soft); border-left-color:var(--accent); }
+.sidebar-menu .logout { border-top:1px solid var(--border); margin-top:8px; padding-top:8px; color:#ff6b6b !important; }
+.sidebar-menu .logout:hover { background:rgba(255,107,107,0.06); }
+
+/* ── Content ── */
+.content { min-height:500px; }
+.page-section { display:none; }
+.page-section.active { display:block; }
 .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:16px; transition:border 0.2s; }
-.card:hover { border-color:#3a3a55; }
-.clickable { cursor:pointer; }
-.clickable:hover { border-color:var(--accent); }
-.order-header, .addr-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.card-clickable { cursor:pointer; }
+.card-clickable:hover { border-color:var(--accent); }
+.section-title { font-size:18px; font-weight:700; margin-bottom:20px; }
+
+/* ── Orders ── */
+.order-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .order-id { color:var(--accent-soft); font-weight:600; font-size:13px; }
 .order-date { color:var(--text-3); font-size:12px; }
 .status-badge { display:inline-block; padding:3px 10px; border-radius:100px; font-size:12px; font-weight:600; }
@@ -44,34 +64,53 @@ canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; poin
 .status-badge.shipped { background:rgba(33,150,243,0.12); color:#2196f3; }
 .status-badge.delivered { background:rgba(108,92,231,0.12); color:var(--accent-soft); }
 .status-badge.cancelled { background:rgba(255,107,107,0.12); color:#ff6b6b; }
-.order-body, .addr-body { display:flex; justify-content:space-between; align-items:center; }
+.order-body { display:flex; justify-content:space-between; align-items:center; }
 .order-body .info .product { font-weight:600; font-size:14px; }
 .order-body .info .detail { color:var(--text-2); font-size:13px; margin-top:2px; }
 .order-body .amount { font-size:17px; font-weight:700; color:var(--accent-soft); }
-.empty-state { text-align:center; padding:60px 20px; }
-.empty-state .e { font-size:40px; margin-bottom:12px; }
-.empty-state p { color:var(--text-2); font-size:14px; margin-bottom:16px; }
-.btn-sm { padding:6px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-2); font-size:12px; cursor:pointer; transition:0.2s; }
+
+/* ── ── */
+.empty-state { text-align:center; padding:50px 20px; }
+.empty-state .e { font-size:40px; margin-bottom:10px; }
+.empty-state p { color:var(--text-2); font-size:14px; margin-bottom:14px; }
+.btn-sm { padding:6px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-2); font-size:12px; cursor:pointer; transition:0.2s; text-decoration:none; display:inline-block; }
 .btn-sm:hover { border-color:var(--accent); color:var(--text); }
 .btn-sm.danger { border-color:rgba(255,107,107,0.3); color:#ff6b6b; }
 .btn-sm.danger:hover { background:rgba(255,107,107,0.1); }
+
+/* ── Forms ── */
 .form-group { margin-bottom:14px; }
 .form-group label { display:block; font-size:13px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
-.form-group input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:14px; outline:none; transition:border 0.2s; }
+.form-group input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:14px; outline:none; transition:border .2s; }
 .form-group input:focus { border-color:var(--accent); }
-.btn-full { width:100%; padding:13px; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; font-size:15px; border:none; cursor:pointer; transition:all 0.2s; }
-.btn-full:hover { background:var(--accent-soft); box-shadow:0 4px 20px var(--accent-glow); }
+.btn-full { width:100%; padding:13px; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; font-size:15px; border:none; cursor:pointer; transition:all .2s; }
+.btn-full:hover { background:var(--accent-soft); }
+
 .alert { padding:12px 14px; border-radius:8px; font-size:13px; margin-bottom:14px; display:none; }
 .alert.error { display:block; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); color:#ff6b6b; }
 .alert.success { display:block; background:rgba(108,92,231,0.1); border:1px solid rgba(108,92,231,0.3); color:var(--accent-soft); }
-.addr-item { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--border); }
+
+.addr-item { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
 .addr-item:last-child { border-bottom:none; }
 .addr-item .main .name { font-weight:600; font-size:14px; }
 .addr-item .main .addr { color:var(--text-2); font-size:13px; margin-top:2px; }
 .default-badge { font-size:11px; padding:2px 8px; border-radius:100px; background:rgba(108,92,231,0.12); color:var(--accent-soft); margin-left:6px; }
+
 .loading { text-align:center; padding:40px; color:var(--text-2); }
 .loading .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 10px; }
 @keyframes spin { to{transform:rotate(360deg)} }
+
+.detail-table { width:100%; font-size:14px; border-collapse:collapse; }
+.detail-table td { padding:7px 0; }
+.detail-table td:first-child { color:var(--text-2); width:80px; }
+
+@media (max-width:700px) {
+  .layout { grid-template-columns:1fr; }
+  .sidebar { position:static; }
+  .sidebar-menu { display:flex; flex-wrap:wrap; gap:0; }
+  .sidebar-menu a { flex:1; min-width:80px; justify-content:center; border-left:none; border-bottom:2px solid transparent; padding:10px; }
+  .sidebar-menu a.active { border-left-color:transparent; border-bottom-color:var(--accent); }
+}
 </style>
 </head>
 <body>
@@ -79,133 +118,146 @@ canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; poin
 <div class="page">
   <div class="nav-top">
     <div class="logo">✦ 知诚星辰</div>
-    <div style="display:flex;gap:16px;align-items:center;">
-      <a href="/orders.html">我的订单</a>
-      <a href="/">← 首页</a>
-    </div>
+    <a href="/" style="font-size:14px;">← 返回首页</a>
   </div>
 
-  <!-- User Header -->
-  <div class="user-header">
-    <div class="user-avatar" id="avatarLetter">君</div>
-    <div class="user-info">
-      <div class="name" id="userName">加载中...</div>
-      <div class="email" id="userEmail"></div>
-    </div>
-    <div style="margin-left:auto;"><a href="/" style="color:var(--text-2);text-decoration:none;font-size:13px;">← 首页</a></div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab(0)">📦 我的订单</div>
-    <div class="tab" onclick="switchTab(1)">📍 收货地址</div>
-    <div class="tab" onclick="switchTab(2)">⚙️ 账号设置</div>
-  </div>
-
-  <!-- Tab 0: Orders -->
-  <div class="tab-content active" id="tabOrders">
-    <div id="ordersLoading" class="loading"><div class="spinner"></div><p>加载订单...</p></div>
-    <div id="ordersList"></div>
-    <div id="ordersEmpty" class="empty-state" style="display:none"><div class="e">📦</div><p>还没有订单</p><a href="/" class="btn-sm">去逛逛</a></div>
-  </div>
-
-  <!-- Tab 1: Addresses -->
-  <div class="tab-content" id="tabAddress">
-    <div class="card" style="margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h2 style="font-size:16px;font-weight:700;">收货地址</h2>
-        <button class="btn-sm" onclick="showAddAddr()">+ 添加地址</button>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="avatarLetter">君</div>
+        <div class="name" id="userName">加载中...</div>
+        <div class="email" id="userEmail"></div>
       </div>
-      <div id="addrList"></div>
-      <div id="addrEmpty" class="empty-state" style="display:none"><div class="e">📍</div><p>还没有收货地址</p></div>
-    </div>
-    <div id="addrForm" style="display:none;" class="card">
-      <h2 style="font-size:16px;font-weight:700;margin-bottom:14px;" id="addrFormTitle">添加地址</h2>
-      <div class="form-group"><label>收货人</label><input type="text" id="addrName" placeholder="姓名"></div>
-      <div class="form-group"><label>手机号</label><input type="tel" id="addrPhone" placeholder="手机号"></div>
-      <div class="form-group"><label>地区</label><input type="text" id="addrRegion" placeholder="省/市/区"></div>
-      <div class="form-group"><label>详细地址</label><input type="text" id="addrDetail" placeholder="街道/门牌号"></div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);margin-bottom:14px;">
-        <input type="checkbox" id="addrDefault"> 设为默认地址
-      </label>
-      <div class="alert error" id="addrErr">请填写完整信息</div>
-      <button class="btn-full" onclick="saveAddress()">保存地址</button>
-    </div>
-  </div>
+      <ul class="sidebar-menu">
+        <li><a href="#" class="active" data-section="orders">📦 我的订单</a></li>
+        <li><a href="#" data-section="address">📍 收货地址</a></li>
+        <li><a href="#" data-section="settings">⚙️ 账号设置</a></li>
+        <li><a href="#" class="logout" onclick="if(confirm('确定退出？')){localStorage.removeItem('zcx_token');window.location.href='/';}">🚪 退出登录</a></li>
+      </ul>
+    </aside>
 
-  <!-- Tab 2: Settings -->
-  <div class="tab-content" id="tabSettings">
-    <div class="card">
-      <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;">修改密码</h2>
-      <div class="form-group"><label>当前密码</label><input type="password" id="oldPw" placeholder="输入当前密码"></div>
-      <div class="form-group"><label>新密码</label><input type="password" id="newPw" placeholder="至少6位"></div>
-      <div class="form-group"><label>确认新密码</label><input type="password" id="confirmPw" placeholder="再次输入新密码"></div>
-      <div class="alert error" id="pwErr">密码不匹配</div>
-      <div class="alert success" id="pwOk">密码修改成功</div>
-      <button class="btn-full" onclick="changePassword()">保存修改</button>
-    </div>
-    <div class="card" style="text-align:center;padding:20px;">
-      <button class="btn-sm danger" onclick="if(confirm('确定退出？')){localStorage.removeItem('zcx_token');window.location.href='/';}" style="padding:8px 20px;">退出登录</button>
-    </div>
+    <!-- Content -->
+    <main class="content">
+
+      <!-- ── Orders Section ── -->
+      <div class="page-section active" id="section-orders">
+        <div id="ordersLoading" class="loading"><div class="spinner"></div><p>加载订单...</p></div>
+        <div id="ordersList"></div>
+        <div id="ordersEmpty" class="empty-state" style="display:none"><div class="e">📦</div><p>还没有订单</p><a href="/order.html" class="btn-sm">去下单</a></div>
+        <div id="orderDetail" style="display:none;"></div>
+      </div>
+
+      <!-- ── Address Section ── -->
+      <div class="page-section" id="section-address">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="section-title" style="margin-bottom:0;">收货地址</div>
+          <button class="btn-sm" onclick="showAddAddr()">+ 添加</button>
+        </div>
+        <div id="addrList" class="card"></div>
+        <div id="addrEmpty" class="empty-state" style="display:none"><div class="e">📍</div><p>暂无收货地址</p></div>
+        <div id="addrForm" style="display:none;" class="card">
+          <div style="font-size:16px;font-weight:600;margin-bottom:14px;">添加地址</div>
+          <div class="form-group"><label>收货人</label><input type="text" id="addrName" placeholder="姓名"></div>
+          <div class="form-group"><label>手机号</label><input type="tel" id="addrPhone" placeholder="手机号"></div>
+          <div class="form-group"><label>地区</label><input type="text" id="addrRegion" placeholder="省/市/区"></div>
+          <div class="form-group"><label>详细地址</label><input type="text" id="addrDetail" placeholder="街道/门牌号"></div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);margin-bottom:14px;">
+            <input type="checkbox" id="addrDefault"> 设为默认
+          </label>
+          <div class="alert error" id="addrErr">请完整填写</div>
+          <button class="btn-full" onclick="saveAddress()">保存</button>
+        </div>
+      </div>
+
+      <!-- ── Settings Section ── -->
+      <div class="page-section" id="section-settings">
+        <div class="card">
+          <div class="section-title">修改密码</div>
+          <div class="form-group"><label>当前密码</label><input type="password" id="oldPw" placeholder="输入当前密码"></div>
+          <div class="form-group"><label>新密码</label><input type="password" id="newPw" placeholder="至少6位"></div>
+          <div class="form-group"><label>确认新密码</label><input type="password" id="confirmPw" placeholder="再次输入"></div>
+          <div class="alert error" id="pwErr">请正确填写</div>
+          <div class="alert success" id="pwOk">密码修改成功</div>
+          <button class="btn-full" onclick="changePassword()">保存修改</button>
+        </div>
+      </div>
+
+    </main>
   </div>
 </div>
 
 <script>
 if (!localStorage.getItem('zcx_token')) window.location.href = '/login.html';
 
+// Stars
 const c = document.querySelector('canvas'), cx = c.getContext('2d');
 let st = [];
 function rs() { c.width = window.innerWidth; c.height = window.innerHeight; }
 rs(); window.addEventListener('resize', rs);
-for (let i = 0; i < 80; i++) st.push({x:Math.random()*c.width, y:Math.random()*c.height, r:Math.random()*1.5+0.2, a:Math.random()*0.6+0.2, s:Math.random()*0.02+0.005, p:Math.random()*6.28});
+for (let i = 0; i < 70; i++) st.push({x:Math.random()*c.width, y:Math.random()*c.height, r:Math.random()*1.5+0.2, a:Math.random()*0.6+0.2, s:Math.random()*0.02+0.005, p:Math.random()*6.28});
 function dr(t) { cx.clearRect(0,0,c.width,c.height); for(const s of st){const tw=0.5+0.5*Math.sin(t*s.s+s.p);cx.beginPath();cx.arc(s.x,s.y,s.r,0,6.28);cx.fillStyle=`rgba(240,230,255,${s.a*tw})`;cx.fill()}requestAnimationFrame(dr); }
 dr(0);
 
 const API = '/api';
-function token() { return localStorage.getItem('zcx_token'); }
-
-async function apiFetch(path, opts = {}) {
+async function api(path, opts = {}) {
   const h = { 'Content-Type': 'application/json', ...opts.headers };
-  h['Authorization'] = 'Bearer ' + token();
+  h['Authorization'] = 'Bearer ' + localStorage.getItem('zcx_token');
   const r = await fetch(API + path, { ...opts, headers: h });
   const d = await r.json();
-  if (!r.ok) { if (r.status === 401) { localStorage.removeItem('zcx_token'); window.location.href = '/login.html'; } throw new Error(d.error || '请求失败'); }
+  if (!r.ok) { if (r.status === 401) { localStorage.removeItem('zcx_token'); window.location.href = '/login.html'; } throw new Error(d.error); }
   return d;
 }
 
 const statusMap = { pending:['待支付','pending'], paid:['已支付','paid'], shipped:['已发货','shipped'], delivered:['已签收','delivered'], cancelled:['已取消','cancelled'] };
+let currentSection = 'orders';
+
+// ── Sidebar navigation ──
+document.querySelectorAll('.sidebar-menu a[data-section]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const section = a.dataset.section;
+    switchSection(section);
+  });
+});
+
+function switchSection(name) {
+  currentSection = name;
+  document.querySelectorAll('.sidebar-menu a[data-section]').forEach(a => a.classList.toggle('active', a.dataset.section === name));
+  document.querySelectorAll('.page-section').forEach(s => s.classList.toggle('active', s.id === 'section-' + name));
+  if (name === 'orders') loadOrders();
+  if (name === 'address') loadAddresses();
+}
 
 // ── Init ──
-let userData = null;
 async function init() {
   try {
-    userData = await apiFetch('/me');
-    const u = userData.user;
+    const d = await api('/me');
+    const u = d.user;
     document.getElementById('avatarLetter').textContent = (u.name || u.email)[0];
     document.getElementById('userName').textContent = u.name || u.email;
     document.getElementById('userEmail').textContent = u.email;
     loadOrders();
     loadAddresses();
-  } catch (e) { document.getElementById('userName').textContent = '加载失败'; }
+  } catch(e) { document.getElementById('userName').textContent = '加载失败'; }
 }
-
-// ── Tabs ──
-function switchTab(i) {
-  document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
-  document.querySelectorAll('.tab-content').forEach((t, idx) => t.classList.toggle('active', idx === i));
-}
+init();
 
 // ── Orders ──
 async function loadOrders() {
+  document.getElementById('ordersLoading').style.display = '';
+  document.getElementById('ordersList').innerHTML = '';
+  document.getElementById('orderDetail').style.display = 'none';
   try {
-    const d = await apiFetch('/orders');
+    const d = await api('/orders');
     document.getElementById('ordersLoading').style.display = 'none';
     const list = document.getElementById('ordersList');
     if (!d.orders || !d.orders.length) { document.getElementById('ordersEmpty').style.display = ''; return; }
+    document.getElementById('ordersEmpty').style.display = 'none';
     list.innerHTML = d.orders.map(o => {
       const s = statusMap[o.status] || ['未知','pending'];
       const date = new Date(o.created_at).toLocaleDateString('zh-CN');
-      return `<div class="card clickable" onclick="showOrderDetail('${o.id}')">
+      return `<div class="card card-clickable" onclick="showDetail('${o.id}')">
         <div class="order-header">
           <span class="order-id">${o.id}</span>
           <span class="order-date">${date}</span>
@@ -222,57 +274,56 @@ async function loadOrders() {
         </div>
       </div>`;
     }).join('');
-  } catch (e) { document.getElementById('ordersLoading').innerHTML = `<p style="color:#ff6b6b;">${e.message}</p>`; }
+  } catch(e) { document.getElementById('ordersLoading').innerHTML = '<p style="color:#ff6b6b;">'+e.message+'</p>'; }
 }
 
-// ── Order Detail ──
-let currentDetailOrder = null;
-async function showOrderDetail(orderId) {
+async function showDetail(orderId) {
   try {
-    const d = await apiFetch(`/orders/${orderId}`);
+    const d = await api('/orders/' + orderId);
     const o = d.order;
-    currentDetailOrder = o;
     const s = statusMap[o.status] || ['未知','pending'];
     const date = new Date(o.created_at).toLocaleString('zh-CN');
-    document.getElementById('ordersList').innerHTML = `
+    document.getElementById('ordersList').style.display = 'none';
+    document.getElementById('ordersEmpty').style.display = 'none';
+    document.getElementById('orderDetail').style.display = '';
+    document.getElementById('orderDetail').innerHTML = `
       <div class="card">
-        <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <span class="order-id">${o.id}</span>
           <span class="status-badge ${s[1]}">${s[0]}</span>
         </div>
-        <table style="width:100%;font-size:14px;border-collapse:collapse;">
-          <tr><td style="color:var(--text-2);padding:6px 0;">商品</td><td>${o.product} × ${o.quantity}</td></tr>
-          <tr><td style="color:var(--text-2);padding:6px 0;">金额</td><td style="font-weight:700;">¥${Number(o.total_price).toLocaleString()}</td></tr>
-          <tr><td style="color:var(--text-2);padding:6px 0;">下单时间</td><td>${date}</td></tr>
-          <tr><td style="color:var(--text-2);padding:6px 0;">收货人</td><td>${o.receiver_name}</td></tr>
-          <tr><td style="color:var(--text-2);padding:6px 0;">电话</td><td>${o.receiver_phone}</td></tr>
-          <tr><td style="color:var(--text-2);padding:6px 0;">地址</td><td>${o.receiver_address}</td></tr>
-          ${o.note ? `<tr><td style="color:var(--text-2);padding:6px 0;">备注</td><td>${o.note}</td></tr>` : ''}
-          ${o.payment_method ? `<tr><td style="color:var(--text-2);padding:6px 0;">支付</td><td>${o.payment_method === 'alipay' ? '💙 支付宝' : '💚 微信'}</td></tr>` : ''}
+        <table class="detail-table">
+          <tr><td>商品</td><td>${o.product} × ${o.quantity}</td></tr>
+          <tr><td>金额</td><td style="font-weight:700;">¥${Number(o.total_price).toLocaleString()}</td></tr>
+          <tr><td>时间</td><td>${date}</td></tr>
+          <tr><td>收货人</td><td>${o.receiver_name}</td></tr>
+          <tr><td>电话</td><td>${o.receiver_phone}</td></tr>
+          <tr><td>地址</td><td>${o.receiver_address}</td></tr>
+          ${o.note ? '<tr><td>备注</td><td>'+o.note+'</td></tr>' : ''}
+          ${o.payment_method ? '<tr><td>支付</td><td>'+(o.payment_method === 'alipay' ? '💙 支付宝' : '💚 微信')+'</td></tr>' : ''}
         </table>
-        ${o.status === 'pending' || o.status === 'paid' ? `
-        <div style="margin-top:16px;display:flex;gap:10px;">
-          <button class="btn-sm danger" onclick="cancelOrder('${o.id}')">取消订单</button>
-          <button class="btn-sm" onclick="loadOrders()">← 返回</button>
-        </div>` : `
-        <div style="margin-top:16px;"><button class="btn-sm" onclick="loadOrders()">← 返回</button></div>`}
+        ${o.status === 'pending' || o.status === 'paid' ? '<div style="margin-top:16px;"><button class="btn-sm danger" onclick="cancelOrder(\''+o.id+'\')">取消订单</button></div>' : ''}
+        <div style="margin-top:12px;"><button class="btn-sm" onclick="backToList()">← 返回</button></div>
       </div>`;
   } catch(e) { alert(e.message); }
 }
 
-async function cancelOrder(orderId) {
-  if (!confirm('确定取消这个订单？')) return;
-  try {
-    await apiFetch(`/orders/${orderId}/cancel`, { method: 'POST', body: '{}' });
-    alert('订单已取消');
-    loadOrders();
-  } catch(e) { alert(e.message); }
+function backToList() {
+  document.getElementById('ordersList').style.display = '';
+  document.getElementById('orderDetail').style.display = 'none';
+  loadOrders();
+}
+
+async function cancelOrder(id) {
+  if (!confirm('确定取消该订单？')) return;
+  try { await api('/orders/' + id + '/cancel', { method:'POST', body:'{}' }); backToList(); }
+  catch(e) { alert(e.message); }
 }
 
 // ── Addresses ──
 async function loadAddresses() {
   try {
-    const d = await apiFetch('/addresses');
+    const d = await api('/addresses');
     const list = document.getElementById('addrList');
     if (!d.addresses || !d.addresses.length) { document.getElementById('addrEmpty').style.display = ''; list.innerHTML = ''; return; }
     document.getElementById('addrEmpty').style.display = 'none';
@@ -280,9 +331,9 @@ async function loadAddresses() {
       <div class="addr-item">
         <div class="main">
           <div class="name">${a.name} ${a.is_default ? '<span class="default-badge">默认</span>' : ''}</div>
-          <div class="addr">${a.address} ${a.detail || ''} · ${a.phone}</div>
+          <div class="addr">${a.address} ${a.detail||''} · ${a.phone}</div>
         </div>
-        <button class="btn-sm danger" onclick="deleteAddress('${a.id}')">删除</button>
+        <button class="btn-sm danger" onclick="delAddr('${a.id}')">删除</button>
       </div>
     `).join('');
   } catch(e) {}
@@ -290,7 +341,6 @@ async function loadAddresses() {
 
 function showAddAddr() {
   document.getElementById('addrForm').style.display = '';
-  document.getElementById('addrFormTitle').textContent = '添加地址';
   ['addrName','addrPhone','addrRegion','addrDetail'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('addrDefault').checked = false;
 }
@@ -302,15 +352,15 @@ async function saveAddress() {
   const detail = document.getElementById('addrDetail').value.trim();
   if (!name || !phone || !address) { document.getElementById('addrErr').style.display = 'block'; return; }
   try {
-    await apiFetch('/addresses', { method: 'POST', body: JSON.stringify({ name, phone, address, detail, is_default: document.getElementById('addrDefault').checked }) });
+    await api('/addresses', { method:'POST', body: JSON.stringify({name,phone,address,detail, is_default: document.getElementById('addrDefault').checked}) });
     document.getElementById('addrForm').style.display = 'none';
     loadAddresses();
   } catch(e) { document.getElementById('addrErr').textContent = e.message; document.getElementById('addrErr').style.display = 'block'; }
 }
 
-async function deleteAddress(id) {
-  if (!confirm('确定删除这个地址？')) return;
-  try { await apiFetch(`/addresses/${id}`, { method: 'DELETE' }); loadAddresses(); }
+async function delAddr(id) {
+  if (!confirm('删除此地址？')) return;
+  try { await api('/addresses/'+id, { method:'DELETE' }); loadAddresses(); }
   catch(e) { alert(e.message); }
 }
 
@@ -319,18 +369,15 @@ async function changePassword() {
   const oldPw = document.getElementById('oldPw').value;
   const newPw = document.getElementById('newPw').value;
   const confirmPw = document.getElementById('confirmPw').value;
-  document.getElementById('pwErr').style.display = 'none';
-  document.getElementById('pwOk').style.display = 'none';
-  if (!oldPw || !newPw || newPw !== confirmPw) { document.getElementById('pwErr').textContent = '请正确填写所有密码字段'; document.getElementById('pwErr').style.display = 'block'; return; }
-  if (newPw.length < 6) { document.getElementById('pwErr').textContent = '新密码至少6位'; document.getElementById('pwErr').style.display = 'block'; return; }
+  document.getElementById('pwErr').style.display = 'none'; document.getElementById('pwOk').style.display = 'none';
+  if (!oldPw || !newPw || newPw !== confirmPw) { document.getElementById('pwErr').textContent = '请正确填写'; document.getElementById('pwErr').style.display = 'block'; return; }
+  if (newPw.length < 6) { document.getElementById('pwErr').textContent = '密码至少6位'; document.getElementById('pwErr').style.display = 'block'; return; }
   try {
-    await apiFetch('/auth/change-password', { method: 'POST', body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw }) });
+    await api('/auth/change-password', { method:'POST', body: JSON.stringify({oldPassword:oldPw, newPassword:newPw}) });
     document.getElementById('pwOk').style.display = 'block';
     document.getElementById('oldPw').value = ''; document.getElementById('newPw').value = ''; document.getElementById('confirmPw').value = '';
   } catch(e) { document.getElementById('pwErr').textContent = e.message; document.getElementById('pwErr').style.display = 'block'; }
 }
-
-init();
 </script>
 </body>
 </html>
