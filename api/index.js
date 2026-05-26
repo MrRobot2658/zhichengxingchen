@@ -9,7 +9,7 @@ function pool() {
     const { Pool } = require('pg');
     _pool = new Pool({
       connectionString: url,
-      ssl: { rejectUnauthorized: false, ca: undefined },
+      ssl: { rejectUnauthorized: false },
       connectionTimeoutMillis: 10000,
     });
   } catch (e) { console.error('pg err:', e.message); }
@@ -193,10 +193,24 @@ module.exports = async (req, res) => {
 
     // GET /health
     if (path === '/health') {
-      let dbOk = false; try { if (pool()) { await q('SELECT 1'); dbOk = true; } } catch {}
+      let dbOk = false, dbErr = null;
+      try {
+        if (pool()) {
+          await q('SELECT 1');
+          dbOk = true;
+        } else {
+          dbErr = 'pool is null';
+        }
+      } catch (e) { dbErr = e.message; }
       return res.json({
-        ok: true, db: dbOk, time: new Date().toISOString(),
-        env: { pg: !!process.env.POSTGRES_URL, gmail: !!process.env.GMAIL_USER },
+        ok: true, db: dbOk,
+        db_error: dbErr,
+        env: {
+          pg: !!process.env.POSTGRES_URL,
+          db_url: !!process.env.DATABASE_URL,
+          gmail: !!process.env.GMAIL_USER,
+        },
+        time: new Date().toISOString(),
       });
     }
 
