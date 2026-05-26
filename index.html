@@ -1089,126 +1089,173 @@ document.querySelectorAll('.about-card, .product-showcase, .vision-content, .pri
 // ── Auth Modal ──
 let orderQty = 1;
 let currentPayment = 'alipay';
-let loggedIn = false;
+let token = localStorage.getItem('zcx_token') || '';
+
+const API_BASE = '/api';
+
+async function apiFetch(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '请求失败');
+  return data;
+}
 
 function openLoginModal() {
-document.getElementById('loginModal').classList.add('active');
-document.body.style.overflow = 'hidden';
+  document.getElementById('loginModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal(id) {
-document.getElementById(id).classList.remove('active');
-document.body.style.overflow = '';
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
 }
 
-// Click overlay to close
 document.getElementById('loginModal').addEventListener('click', function(e) {
-if (e.target === this) closeModal('loginModal');
+  if (e.target === this) closeModal('loginModal');
 });
 
 function switchAuthTab(tab) {
-document.querySelectorAll('#authTabs .tab').forEach(t => t.classList.remove('active'));
-document.getElementById('loginForm').style.display = tab === 'login' ? '' : 'none';
-document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
-if (tab === 'login') {
-  document.querySelector('#authTabs .tab:first-child').classList.add('active');
-} else {
-  document.querySelector('#authTabs .tab:last-child').classList.add('active');
-}
-document.getElementById('loginError').style.display = 'none';
-document.getElementById('regError').style.display = 'none';
+  document.querySelectorAll('#authTabs .tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('loginForm').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
+  document.querySelector(`#authTabs .tab:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('regError').style.display = 'none';
 }
 
-function handleLogin() {
-const email = document.getElementById('loginEmail').value.trim();
-const pw = document.getElementById('loginPassword').value.trim();
-if (!email || !pw) {
-  document.getElementById('loginError').textContent = '请填写邮箱和密码';
-  document.getElementById('loginError').style.display = 'block';
-  return;
-}
-// Demo: accept any non-empty
-loggedIn = true;
-closeModal('loginModal');
-showOrderSection();
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  if (!email || !password) {
+    document.getElementById('loginError').textContent = '请填写邮箱和密码';
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  try {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    token = data.token;
+    localStorage.setItem('zcx_token', token);
+    closeModal('loginModal');
+    showOrderSection();
+  } catch (e) {
+    document.getElementById('loginError').textContent = e.message;
+    document.getElementById('loginError').style.display = 'block';
+  }
 }
 
-function handleRegister() {
-const fields = ['regName','regEmail','regPhone','regPassword'];
-const empty = fields.some(id => !document.getElementById(id).value.trim());
-if (empty) {
-  document.getElementById('regError').style.display = 'block';
-  return;
-}
-loggedIn = true;
-closeModal('loginModal');
-showOrderSection();
+async function handleRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+  if (!name || !email || !phone || !password) {
+    document.getElementById('regError').style.display = 'block';
+    return;
+  }
+  try {
+    const data = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, phone, password }),
+    });
+    token = data.token;
+    localStorage.setItem('zcx_token', token);
+    closeModal('loginModal');
+    showOrderSection();
+  } catch (e) {
+    document.getElementById('regError').textContent = e.message;
+    document.getElementById('regError').style.display = 'block';
+  }
 }
 
 function socialLogin(provider) {
-loggedIn = true;
-closeModal('loginModal');
-showOrderSection();
+  // 真实 OAuth 需接入微信/支付宝开放平台
+  alert(`${provider} 登录功能开发中，请先用邮箱注册`);
 }
 
 // ── Order ──
 function showOrderSection() {
-document.querySelectorAll('section:not(.section-order):not(.section-payment)').forEach(s => {
-  s.style.display = 'none';
-});
-document.querySelector('nav').style.display = 'none';
-document.getElementById('orderSection').style.display = 'block';
-window.scrollTo(0, 0);
+  document.querySelectorAll('section:not(.section-order):not(.section-payment)').forEach(s => {
+    s.style.display = 'none';
+  });
+  document.querySelector('nav').style.display = 'none';
+  document.getElementById('orderSection').style.display = 'block';
+  window.scrollTo(0, 0);
 }
 
 function changeQty(delta) {
-orderQty = Math.max(1, Math.min(99, orderQty + delta));
-document.getElementById('orderQty').textContent = orderQty;
-const total = orderQty * 1999;
-document.getElementById('totalAmount').textContent = '¥' + total.toLocaleString();
+  orderQty = Math.max(1, Math.min(99, orderQty + delta));
+  document.getElementById('orderQty').textContent = orderQty;
+  const total = orderQty * 1999;
+  document.getElementById('totalAmount').textContent = '¥' + total.toLocaleString();
 }
 
-function submitOrder() {
-const name = document.getElementById('orderName').value.trim();
-const phone = document.getElementById('orderPhone').value.trim();
-const addr = document.getElementById('orderAddr').value.trim();
-if (!name || !phone || !addr) {
-  alert('请填写完整的收货信息');
-  return;
-}
-document.getElementById('orderSection').style.display = 'none';
-document.getElementById('paymentSection').style.display = 'block';
-const total = orderQty * 1999;
-document.getElementById('payAmount').textContent = '¥' + total.toLocaleString();
-window.scrollTo(0, 0);
+async function submitOrder() {
+  const name = document.getElementById('orderName').value.trim();
+  const phone = document.getElementById('orderPhone').value.trim();
+  const addr = document.getElementById('orderAddr').value.trim();
+  const note = document.getElementById('orderNote').value.trim();
+  if (!name || !phone || !addr) {
+    alert('请填写完整的收货信息');
+    return;
+  }
+  try {
+    const data = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify({ name, phone, address: addr, note, quantity: orderQty }),
+    });
+    window._currentOrderId = data.order.id;
+    document.getElementById('orderSection').style.display = 'none';
+    document.getElementById('paymentSection').style.display = 'block';
+    document.getElementById('payAmount').textContent = '¥' + data.order.total.toLocaleString();
+    window.scrollTo(0, 0);
+  } catch (e) {
+    alert(e.message);
+  }
 }
 
 // ── Payment ──
 function selectPayment(type, el) {
-currentPayment = type;
-document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
-el.classList.add('selected');
-if (type === 'alipay') {
-  document.getElementById('qrIcon').textContent = '💙';
+  currentPayment = type;
+  document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  const icon = type === 'alipay' ? '💙' : '💚';
+  const name = type === 'alipay' ? '支付宝' : '微信';
+  document.getElementById('qrIcon').textContent = icon;
   document.getElementById('qrText').innerHTML =
-    '请使用 <strong>支付宝</strong> 扫码支付<br>' +
-    '<span style="font-size:12px;color:var(--text-3);">支付金额：<strong id="payAmount" style="color:var(--accent-soft);">' +
-    document.getElementById('payAmount').textContent + '</strong></span>';
-} else {
-  document.getElementById('qrIcon').textContent = '💚';
-  document.getElementById('qrText').innerHTML =
-    '请使用 <strong>微信</strong> 扫码支付<br>' +
-    '<span style="font-size:12px;color:var(--text-3);">支付金额：<strong id="payAmount" style="color:var(--accent-soft);">' +
-    document.getElementById('payAmount').textContent + '</strong></span>';
-}
+    `请使用 <strong>${name}</strong> 扫码支付<br>` +
+    `<span style="font-size:12px;color:var(--text-3);">支付金额：<strong style="color:var(--accent-soft);">${document.getElementById('payAmount').textContent}</strong></span>`;
 }
 
-function showPaymentSuccess() {
-document.getElementById('paymentQR').style.display = 'none';
-document.getElementById('paymentSuccess').style.display = 'block';
-const orderNo = 'ZCX' + Date.now().toString(36).toUpperCase();
-document.getElementById('orderNo').textContent = orderNo;
-window.scrollTo(0, 0);
+async function showPaymentSuccess() {
+  if (!window._currentOrderId) {
+    alert('订单异常，请重新下单');
+    return;
+  }
+  try {
+    // 调用支付 API
+    const paymentApi = currentPayment === 'alipay' ? '/payment/alipay' : '/payment/wechat';
+    await apiFetch(paymentApi, {
+      method: 'POST',
+      body: JSON.stringify({ orderId: window._currentOrderId }),
+    });
+    // 确认支付
+    await apiFetch('/payment/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ orderId: window._currentOrderId }),
+    });
+
+    document.getElementById('paymentQR').style.display = 'none';
+    document.getElementById('paymentSuccess').style.display = 'block';
+    document.getElementById('orderNo').textContent = window._currentOrderId;
+    window.scrollTo(0, 0);
+  } catch (e) {
+    alert(e.message);
+  }
 }
 
 function resetToHome() {

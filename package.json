@@ -1,0 +1,13 @@
+{
+  "name": "zhichengxingchen",
+  "version": "1.0.0",
+  "description": "知诚星辰智能 — 后端 API",
+  "private": true,
+  "scripts": {
+    "dev": "node api/index.js",
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
+}
