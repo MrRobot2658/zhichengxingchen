@@ -191,25 +191,21 @@ module.exports = async (req, res) => {
       return res.json({ user: rows[0] || null });
     }
 
-    // GET /health
+// GET /health (also handles DB connect test)
     if (path === '/health') {
-      let dbOk = false, dbErr = null;
+      let dbOk = false, dbErr = null, dbUrl = 'no';
       try {
-        if (pool()) {
+        const url = process.env.POSTGRES_URL || process.env.DATABASE_URL || '';
+        dbUrl = url ? 'yes' : 'no';
+        const p = pool();
+        if (p) {
           await q('SELECT 1');
           dbOk = true;
-        } else {
-          dbErr = 'pool is null';
         }
       } catch (e) { dbErr = e.message; }
       return res.json({
-        ok: true, db: dbOk,
-        db_error: dbErr,
-        env: {
-          pg: !!process.env.POSTGRES_URL,
-          db_url: !!process.env.DATABASE_URL,
-          gmail: !!process.env.GMAIL_USER,
-        },
+        ok: true, db: dbOk, db_error: dbErr,
+        env: { pg_url: dbUrl, gmail: !!process.env.GMAIL_USER },
         time: new Date().toISOString(),
       });
     }
