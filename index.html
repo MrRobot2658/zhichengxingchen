@@ -431,9 +431,9 @@ footer p { color:var(--text-3); font-size:13px; }
         document.getElementById('navBuy').href = '/order.html';
         const acct = document.getElementById('navAccount');
         acct.style.display = '';
-        // Decode username from JWT
+        // Decode username from JWT (handle UTF-8 Chinese)
         try {
-          const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+          const payload = JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));
           acct.textContent = payload.name || payload.email || '个人中心';
           acct.href = '/account.html';
         } catch { acct.textContent = '个人中心'; acct.href = '/account.html'; }
