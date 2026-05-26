@@ -413,27 +413,32 @@ footer p { color:var(--text-3); font-size:13px; }
     <a href="/#pricing">定价</a>
     <a href="/#contact">联系</a>
     <a href="/login.html" id="navLogin">登录</a>
+    <a href="/account.html" id="navAccount" style="display:none"></a>
     <a href="/orders.html" id="navOrders" style="display:none">我的订单</a>
     <a href="/login.html" class="nav-cta" id="navBuy">立即购买</a>
   </div>
   <script>
-    // 检查登录状态
-    if (localStorage.getItem('zcx_token')) {
-      document.getElementById('navLogin').textContent = '退出';
-      document.getElementById('navLogin').href = 'javascript:void(0)';
-      document.getElementById('navLogin').onclick = function() {
-        if (confirm('确定退出登录？')) {
-          localStorage.removeItem('zcx_token');
-          document.getElementById('navLogin').textContent = '登录';
-          document.getElementById('navLogin').href = '/login.html';
-          document.getElementById('navLogin').onclick = null;
-          document.getElementById('navOrders').style.display = 'none';
-          document.getElementById('navBuy').href = '/login.html';
-        }
-      };
-      document.getElementById('navOrders').style.display = '';
-      document.getElementById('navBuy').href = '/order.html';
-    }
+    (function() {
+      const t = localStorage.getItem('zcx_token');
+      if (t) {
+        const login = document.getElementById('navLogin');
+        login.textContent = '退出';
+        login.href = 'javascript:void(0)';
+        login.onclick = function() {
+          if (confirm('确定退出？')) { localStorage.removeItem('zcx_token'); window.location.href = '/'; }
+        };
+        document.getElementById('navOrders').style.display = '';
+        document.getElementById('navBuy').href = '/order.html';
+        const acct = document.getElementById('navAccount');
+        acct.style.display = '';
+        // Decode username from JWT
+        try {
+          const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+          acct.textContent = payload.name || payload.email || '个人中心';
+          acct.href = '/account.html';
+        } catch { acct.textContent = '个人中心'; acct.href = '/account.html'; }
+      }
+    })();
   </script>
 </nav>
 

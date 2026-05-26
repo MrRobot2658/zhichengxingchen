@@ -124,6 +124,9 @@ body {
 </div>
 
 <script>
+// Redirect if already logged in
+if (localStorage.getItem('zcx_token')) window.location.href = '/account.html';
+
 // Stars
 const c = document.getElementById('stars-canvas'), cx = c.getContext('2d');
 let st = [];

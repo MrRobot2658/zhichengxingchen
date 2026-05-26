@@ -117,6 +117,26 @@ module.exports = async (req, res) => {
       return res.json({ message: '登录成功', token: sign(rows[0]), user: { id: rows[0].id, name: rows[0].name, email: rows[0].email } });
     }
 
+    // GET /orders/:id
+    const orderDetailMatch = path.match(/^\/orders\/([A-Z0-9]+)$/);
+    if (orderDetailMatch && req.method === 'GET') {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      const { rows } = await q('SELECT * FROM orders WHERE id=$1 AND user_id=$2', [orderDetailMatch[1], u.id]);
+      if (!rows.length) return res.status(404).json({ error: '订单不存在' });
+      return res.json({ order: rows[0] });
+    }
+
+    // POST /orders/:id/cancel
+    if (orderDetailMatch && req.method === 'POST' && path.endsWith('/cancel')) {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      const oid = orderDetailMatch[1];
+      const { rows } = await q('SELECT * FROM orders WHERE id=$1 AND user_id=$2', [oid, u.id]);
+      if (!rows.length) return res.status(404).json({ error: '订单不存在' });
+      if (rows[0].status === 'shipped' || rows[0].status === 'delivered') return res.status(400).json({ error: '已发货订单无法取消' });
+      await q("UPDATE orders SET status='cancelled' WHERE id=$1", [oid]);
+      return res.json({ message: '订单已取消', order: { id: oid, status: 'cancelled' } });
+    }
+
     // POST /orders
     if (path === '/orders' && req.method === 'POST') {
       const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
@@ -206,7 +226,48 @@ module.exports = async (req, res) => {
       return res.json({ user: rows[0] || null });
     }
 
-// GET /health (also handles DB connect test)
+    // POST /auth/change-password
+    if (path === '/auth/change-password' && req.method === 'POST') {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      const { oldPassword, newPassword } = body;
+      if (!oldPassword || !newPassword) return res.status(400).json({ error: '请填写旧密码和新密码' });
+      if (newPassword.length < 6) return res.status(400).json({ error: '新密码至少6位' });
+      const { rows } = await q('SELECT * FROM users WHERE id=$1', [u.id]);
+      if (!rows.length || hashPw(oldPassword, rows[0].salt).hash !== rows[0].hash) return res.status(401).json({ error: '旧密码错误' });
+      const { salt, hash } = hashPw(newPassword);
+      await q('UPDATE users SET salt=$1, hash=$2 WHERE id=$3', [salt, hash, u.id]);
+      return res.json({ message: '密码修改成功' });
+    }
+
+    // Addresses
+    await q(`CREATE TABLE IF NOT EXISTS addresses (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id), name TEXT NOT NULL, phone TEXT NOT NULL, address TEXT NOT NULL, detail TEXT DEFAULT '', is_default BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`).catch(()=>{});
+
+    if (path === '/addresses' && req.method === 'GET') {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      const { rows } = await q('SELECT * FROM addresses WHERE user_id=$1 ORDER BY is_default DESC, created_at DESC', [u.id]);
+      return res.json({ addresses: rows });
+    }
+
+    if (path === '/addresses' && req.method === 'POST') {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      const { name, phone, address, detail, is_default } = body;
+      if (!name || !phone || !address) return res.status(400).json({ error: '请填写完整地址' });
+      const id = genId('A');
+      if (is_default) await q("UPDATE addresses SET is_default=false WHERE user_id=$1", [u.id]);
+      await q('INSERT INTO addresses(id,user_id,name,phone,address,detail,is_default) VALUES($1,$2,$3,$4,$5,$6,$7)', [id, u.id, name, phone, address, detail||'', !!is_default]);
+      return res.status(201).json({ message: '地址已添加', address: { id, name, phone, address } });
+    }
+
+    // DELETE /addresses/:id
+    const addrMatch = path.match(/^\/addresses\/([A-Z0-9]+)$/);
+    if (addrMatch && req.method === 'DELETE') {
+      const u = user(req); if (!u) return res.status(401).json({ error: '未登录' });
+      await q('DELETE FROM addresses WHERE id=$1 AND user_id=$2', [addrMatch[1], u.id]);
+      return res.json({ message: '地址已删除' });
+    }
+
+
+    // GET /health (also handles DB connect test)
     if (path === '/health') {
       let dbOk = false, dbErr = null, dbUrl = 'no';
       try {
