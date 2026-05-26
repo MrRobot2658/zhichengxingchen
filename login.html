@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 知诚星辰智能</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0a0f; --surface: #101018; --surface-2: #181825;
+  --border: #2a2a45; --text: #e8e8f0; --text-2: #9898b8;
+  --accent: #6c5ce7; --accent-soft: #a29bfe; --accent-glow: rgba(108,92,231,0.3);
+  --radius: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Noto Sans SC',-apple-system,sans-serif;
+  background:var(--ink); color:var(--text);
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+}
+#stars-canvas {
+  position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;
+}
+.page {
+  position:relative; z-index:1; width:100%; max-width:440px; margin:20px;
+}
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:40px 32px;
+}
+.card .back { margin-bottom:20px; display:inline-block; }
+.card .back a { color:var(--text-2); text-decoration:none; font-size:14px; }
+.card .back a:hover { color:var(--accent-soft); }
+.card h1 { font-size:24px; font-weight:700; margin-bottom:4px; }
+.card .sub { color:var(--text-2); font-size:14px; margin-bottom:28px; }
+.tabs { display:flex; gap:0; margin-bottom:24px; border-bottom:1px solid var(--border); }
+.tab { flex:1; padding:10px; text-align:center; font-size:14px; font-weight:500;
+  color:var(--text-3); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+.tab.active { color:var(--accent-soft); border-bottom-color:var(--accent); }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:13px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
+.form-group input {
+  width:100%; padding:12px 14px; border-radius:8px;
+  border:1px solid var(--border); background:var(--surface-2);
+  color:var(--text); font-size:14px; outline:none; transition:border 0.2s;
+}
+.form-group input:focus { border-color:var(--accent); }
+.btn-full {
+  width:100%; padding:14px; border-radius:8px;
+  background:var(--accent); color:#fff; font-weight:600; font-size:15px;
+  border:none; cursor:pointer; transition:all 0.2s;
+}
+.btn-full:hover { background:var(--accent-soft); box-shadow:0 4px 20px var(--accent-glow); }
+.form-error { color:#ff6b6b; font-size:13px; margin-top:6px; display:none; }
+.form-footer { text-align:center; font-size:13px; color:var(--text-2); margin-top:16px; }
+.form-footer a { color:var(--accent-soft); cursor:pointer; text-decoration:none; }
+.form-footer a:hover { text-decoration:underline; }
+.loading { display:none; text-align:center; padding:20px; }
+.loading span { color:var(--text-2); font-size:14px; }
+.alert {
+  padding:12px 16px; border-radius:8px; font-size:14px; margin-bottom:16px; display:none;
+}
+.alert.error { display:block; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); color:#ff6b6b; }
+.alert.success { display:block; background:rgba(108,92,231,0.1); border:1px solid rgba(108,92,231,0.3); color:var(--accent-soft); }
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div class="page">
+  <div class="card">
+    <div class="back"><a href="/">← 返回首页</a></div>
+    <div class="tabs" id="authTabs">
+      <div class="tab active" onclick="switchTab(0)">登录</div>
+      <div class="tab" onclick="switchTab(1)">注册</div>
+    </div>
+
+    <!-- Login -->
+    <div id="formLogin">
+      <h1>欢迎回来</h1>
+      <p class="sub">登录你的知诚星辰账号</p>
+      <div class="form-group">
+        <label>邮箱</label>
+        <input type="email" placeholder="you@example.com" id="loginEmail">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" placeholder="••••••••" id="loginPw">
+      </div>
+      <div class="alert error" id="loginErr">邮箱或密码错误</div>
+      <button class="btn-full" onclick="handleLogin()" id="loginBtn">登录</button>
+      <div class="form-footer">
+        还没有账号？<a onclick="switchTab(1)">立即注册</a>
+      </div>
+    </div>
+
+    <!-- Register -->
+    <div id="formRegister" style="display:none">
+      <h1>创建账号</h1>
+      <p class="sub">注册后即可下单购买</p>
+      <div class="form-group">
+        <label>昵称</label>
+        <input type="text" placeholder="你的名字" id="regName">
+      </div>
+      <div class="form-group">
+        <label>邮箱</label>
+        <input type="email" placeholder="you@example.com" id="regEmail">
+      </div>
+      <div class="form-group">
+        <label>手机号</label>
+        <input type="tel" placeholder="13800138000" id="regPhone">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" placeholder="••••••••" id="regPw">
+      </div>
+      <div class="alert error" id="regErr">请填写所有必填字段</div>
+      <button class="btn-full" onclick="handleRegister()" id="regBtn">注册</button>
+      <div class="form-footer">
+        已有账号？<a onclick="switchTab(0)">去登录</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Stars
+const c = document.getElementById('stars-canvas'), cx = c.getContext('2d');
+let st = [];
+function rs() { c.width = window.innerWidth; c.height = window.innerHeight; }
+rs(); window.addEventListener('resize', rs);
+for (let i = 0; i < 120; i++) st.push({x:Math.random()*c.width, y:Math.random()*c.height, r:Math.random()*1.5+0.2, a:Math.random()*0.6+0.2, s:Math.random()*0.02+0.005, p:Math.random()*6.28});
+function dr(t) {
+  cx.clearRect(0, 0, c.width, c.height);
+  for (const s of st) { const tw = 0.5+0.5*Math.sin(t*s.s+s.p); cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.28); cx.fillStyle=`rgba(240,230,255,${s.a*tw})`; cx.fill(); }
+  requestAnimationFrame(dr);
+}
+dr(0);
+
+const API = '/api';
+let loading = false;
+
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
+  document.getElementById('formLogin').style.display = i === 0 ? '' : 'none';
+  document.getElementById('formRegister').style.display = i === 1 ? '' : 'none';
+  document.getElementById('loginErr').style.display = 'none';
+  document.getElementById('regErr').style.display = 'none';
+}
+
+async function apiFetch(path, opts = {}) {
+  const h = { 'Content-Type': 'application/json', ...opts.headers };
+  const t = localStorage.getItem('zcx_token');
+  if (t) h['Authorization'] = 'Bearer ' + t;
+  const r = await fetch(API + path, { ...opts, headers: h });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || '请求失败');
+  return d;
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPw').value.trim();
+  if (!email || !password) { document.getElementById('loginErr').textContent = '请填写邮箱和密码'; document.getElementById('loginErr').style.display = 'block'; return; }
+  document.getElementById('loginBtn').disabled = true; document.getElementById('loginBtn').textContent = '登录中...';
+  try {
+    const d = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    localStorage.setItem('zcx_token', d.token);
+    window.location.href = '/order.html';
+  } catch (e) {
+    document.getElementById('loginErr').textContent = e.message;
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginBtn').disabled = false; document.getElementById('loginBtn').textContent = '登录';
+  }
+}
+
+async function handleRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPw').value.trim();
+  if (!name || !email || !phone || !password) { document.getElementById('regErr').textContent = '请填写所有必填字段'; document.getElementById('regErr').style.display = 'block'; return; }
+  document.getElementById('regBtn').disabled = true; document.getElementById('regBtn').textContent = '注册中...';
+  try {
+    const d = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, phone, password }) });
+    localStorage.setItem('zcx_token', d.token);
+    window.location.href = '/order.html';
+  } catch (e) {
+    document.getElementById('regErr').textContent = e.message;
+    document.getElementById('regErr').style.display = 'block';
+    document.getElementById('regBtn').disabled = false; document.getElementById('regBtn').textContent = '注册';
+  }
+}
+</script>
+</body>
+</html>

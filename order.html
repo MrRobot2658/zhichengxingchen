@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>下单 · 知诚星辰智能</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0a0f; --surface: #101018; --surface-2: #181825; --surface-3: #20203a;
+  --border: #2a2a45; --text: #e8e8f0; --text-2: #9898b8; --text-3: #606080;
+  --accent: #6c5ce7; --accent-soft: #a29bfe; --accent-glow: rgba(108,92,231,0.3);
+  --radius: 16px; --radius-sm: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Noto Sans SC',-apple-system,sans-serif;
+  background:var(--ink); color:var(--text); line-height:1.6; min-height:100vh;
+}
+#stars-canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+.page { position:relative; z-index:1; max-width:1000px; margin:0 auto; padding:60px 20px; }
+.nav-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
+.nav-top .logo { font-weight:700; font-size:18px; background:linear-gradient(135deg,var(--accent-soft),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.nav-top a { color:var(--text-2); text-decoration:none; font-size:14px; transition:color 0.2s; }
+.nav-top a:hover { color:var(--accent-soft); }
+.step-indicator { display:flex; gap:8px; margin-bottom:40px; align-items:center; }
+.step { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-3); }
+.step.active { color:var(--accent-soft); font-weight:600; }
+.step.done { color:#4ade80; }
+.step-bar { width:60px; height:1px; background:var(--border); }
+.step-bar.done { background:#4ade80; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:32px;
+}
+.card h2 { font-size:18px; font-weight:700; margin-bottom:20px; }
+.card h3 { font-size:15px; font-weight:600; margin-bottom:12px; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:13px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
+.form-group input, .form-group textarea {
+  width:100%; padding:10px 12px; border-radius:8px;
+  border:1px solid var(--border); background:var(--surface-2);
+  color:var(--text); font-size:14px; outline:none; transition:border 0.2s; font-family:inherit;
+}
+.form-group input:focus, .form-group textarea:focus { border-color:var(--accent); }
+.form-group textarea { resize:vertical; min-height:60px; }
+.product-summary { display:flex; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+.product-summary img { width:60px; height:60px; object-fit:cover; border-radius:8px; }
+.product-summary .name { font-weight:600; font-size:14px; }
+.product-summary .price { color:var(--accent-soft); font-weight:700; font-size:15px; }
+.qty { display:flex; align-items:center; gap:10px; margin:14px 0; }
+.qty button { width:32px; height:32px; border-radius:6px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:16px; cursor:pointer; }
+.qty button:hover { border-color:var(--accent); }
+.qty span { font-size:16px; font-weight:600; min-width:24px; text-align:center; }
+.total { display:flex; justify-content:space-between; padding:14px 0; font-size:16px; font-weight:700; }
+.total .amount { background:linear-gradient(135deg,#a29bfe,#6c5ce7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:22px; }
+.btn-full {
+  width:100%; padding:14px; border-radius:8px;
+  background:var(--accent); color:#fff; font-weight:600; font-size:15px;
+  border:none; cursor:pointer; transition:all 0.2s;
+}
+.btn-full:hover { background:var(--accent-soft); box-shadow:0 4px 20px var(--accent-glow); }
+.btn-full:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-outline {
+  width:100%; padding:12px; border-radius:8px; border:1px solid var(--border);
+  background:transparent; color:var(--text); font-size:14px; cursor:pointer; transition:all 0.2s;
+}
+.btn-outline:hover { border-color:var(--accent); }
+.alert {
+  padding:12px 16px; border-radius:8px; font-size:14px; margin-bottom:16px; display:none;
+}
+.alert.error { display:block; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); color:#ff6b6b; }
+.alert.success { display:block; background:rgba(108,92,231,0.1); border:1px solid rgba(108,92,231,0.3); color:var(--accent-soft); }
+.payment-option {
+  display:flex; align-items:center; gap:14px; padding:16px 18px;
+  border-radius:var(--radius-sm); border:1px solid var(--border);
+  background:var(--surface); cursor:pointer; transition:0.2s; margin-bottom:12px;
+}
+.payment-option:hover { border-color:var(--accent); }
+.payment-option.selected { border-color:var(--accent); background:rgba(108,92,231,0.08); }
+.payment-option .dot {
+  width:18px; height:18px; border-radius:50%; border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.payment-option.selected .dot { border-color:var(--accent); }
+.payment-option.selected .dot::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--accent); }
+.payment-option .icon { font-size:24px; }
+.payment-option .name { font-weight:600; font-size:14px; }
+.payment-option .desc { color:var(--text-3); font-size:12px; }
+.success-box { text-align:center; padding:48px 32px; }
+.success-box .emoji { font-size:64px; margin-bottom:16px; }
+.success-box h2 { font-size:22px; font-weight:700; margin-bottom:8px; }
+.success-box p { color:var(--text-2); font-size:14px; margin-bottom:24px; }
+.success-box .order-id { color:var(--accent-soft); font-weight:700; font-size:16px; }
+#orderIdDisplay { display:none; }
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div class="page">
+  <div class="nav-top">
+    <div class="logo">✦ 知诚星辰</div>
+    <a href="/orders.html">我的订单 →</a>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="step-indicator" id="stepIndicator">
+    <span class="step active" id="step1">📋 填写信息</span>
+    <span class="step-bar"></span>
+    <span class="step" id="step2">💳 支付</span>
+    <span class="step-bar"></span>
+    <span class="step" id="step3">✅ 完成</span>
+  </div>
+
+  <!-- Step 1: Order Form -->
+  <div id="step1Content">
+    <div class="grid">
+      <div class="card">
+        <h2>收货信息</h2>
+        <div class="form-group">
+          <label>收货人姓名</label>
+          <input type="text" placeholder="请输入姓名" id="orderName">
+        </div>
+        <div class="form-group">
+          <label>手机号</label>
+          <input type="tel" placeholder="请输入手机号" id="orderPhone">
+        </div>
+        <div class="form-group">
+          <label>收货地址</label>
+          <input type="text" placeholder="省/市/区/详细地址" id="orderAddr">
+        </div>
+        <div class="form-group">
+          <label>备注（选填）</label>
+          <textarea placeholder="如：工作日白天送货" id="orderNote"></textarea>
+        </div>
+        <div class="alert error" id="orderErr">请填写完整的收货信息</div>
+      </div>
+      <div class="card" style="position:sticky;top:20px;">
+        <h2>订单摘要</h2>
+        <div class="product-summary">
+          <div>
+            <div class="name">知诚星辰 · 陪伴版</div>
+            <div style="font-size:12px;color:var(--text-3);">Reachy Mini + 小六大脑系统</div>
+          </div>
+          <div style="margin-left:auto;"><span class="price">¥1,999</span></div>
+        </div>
+        <div class="qty">
+          <button onclick="changeQty(-1)">−</button>
+          <span id="orderQty">1</span>
+          <button onclick="changeQty(1)">+</button>
+          <span style="font-size:13px;color:var(--text-2);margin-left:12px;">¥1,999/台</span>
+        </div>
+        <div class="total">
+          <span>合计</span>
+          <span class="amount" id="totalAmount">¥1,999</span>
+        </div>
+        <button class="btn-full" onclick="submitOrder()" id="submitBtn">提交订单</button>
+        <p style="font-size:12px;color:var(--text-3);text-align:center;margin-top:10px;">🚚 顺丰包邮 · 7-15 个工作日发货</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Payment -->
+  <div id="step2Content" style="display:none">
+    <div class="grid">
+      <div>
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">选择支付方式</h2>
+        <div class="payment-option selected" onclick="selectPay('alipay',this)">
+          <div class="dot"></div><span class="icon">💙</span>
+          <div><div class="name">支付宝</div><div class="desc">推荐有支付宝账户的用户</div></div>
+        </div>
+        <div class="payment-option" onclick="selectPay('wechat',this)">
+          <div class="dot"></div><span class="icon">💚</span>
+          <div><div class="name">微信支付</div><div class="desc">微信扫码支付</div></div>
+        </div>
+        <div style="margin-top:16px;padding:14px;border-radius:var(--radius-sm);background:rgba(108,92,231,0.08);border:1px solid rgba(108,92,231,0.2);">
+          <p style="font-size:13px;color:var(--text-2);">
+            <strong style="color:var(--text);">🔒 安全支付</strong><br>
+            支付由支付宝/微信支付官方处理。支付金额：<strong style="color:var(--accent-soft);" id="payAmount">¥1,999</strong>
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="text-align:center;">
+          <div style="font-size:80px;margin-bottom:16px;" id="qrIcon">💙</div>
+          <p style="color:var(--text-2);font-size:14px;" id="qrText">请使用 <strong style="color:var(--accent-soft);">支付宝</strong> 扫码支付</p>
+          <button class="btn-full" style="margin-top:20px;" onclick="confirmPayment()" id="payBtn">我已支付完成</button>
+          <p style="font-size:12px;color:var(--text-3);margin-top:8px;">
+            ⚠️ 确认收款方为「知诚星辰智能（青岛）有限公司」
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Success -->
+  <div id="step3Content" style="display:none">
+    <div class="card" style="max-width:500px;margin:0 auto;" id="orderIdDisplay">
+      <div class="success-box">
+        <div class="emoji">✅</div>
+        <h2>支付成功！</h2>
+        <p>
+          感谢你选择知诚星辰 ❤️<br>
+          我们会在 7-15 个工作日内为你发货。<br>
+          订单号：<span class="order-id" id="orderNo">---</span>
+        </p>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:20px;">
+          确认邮件已发送到你的邮箱 📧
+        </p>
+        <a href="/orders.html" class="btn-full" style="display:inline-block;text-align:center;text-decoration:none;margin-bottom:10px;">查看订单</a>
+        <a href="/" class="btn-outline" style="display:inline-block;text-align:center;text-decoration:none;">返回首页</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Stars
+const c = document.getElementById('stars-canvas'), cx = c.getContext('2d');
+let st = [];
+function rs() { c.width = window.innerWidth; c.height = window.innerHeight; }
+rs(); window.addEventListener('resize', rs);
+for (let i = 0; i < 100; i++) st.push({x:Math.random()*c.width, y:Math.random()*c.height, r:Math.random()*1.5+0.2, a:Math.random()*0.6+0.2, s:Math.random()*0.02+0.005, p:Math.random()*6.28});
+function dr(t) {
+  cx.clearRect(0, 0, c.width, c.height);
+  for (const s of st) { const tw = 0.5+0.5*Math.sin(t*s.s+s.p); cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.28); cx.fillStyle=`rgba(240,230,255,${s.a*tw})`; cx.fill(); }
+  requestAnimationFrame(dr);
+}
+dr(0);
+
+// Auth check
+const token = localStorage.getItem('zcx_token');
+if (!token) window.location.href = '/login.html';
+
+const API = '/api';
+let qty = 1;
+let payMethod = 'alipay';
+let orderId = null;
+
+async function apiFetch(path, opts = {}) {
+  const h = { 'Content-Type': 'application/json', ...opts.headers };
+  h['Authorization'] = 'Bearer ' + (localStorage.getItem('zcx_token') || '');
+  const r = await fetch(API + path, { ...opts, headers: h });
+  const d = await r.json();
+  if (!r.ok) { if (r.status === 401) { localStorage.removeItem('zcx_token'); window.location.href = '/login.html'; } throw new Error(d.error || '请求失败'); }
+  return d;
+}
+
+function changeQty(d) { qty = Math.max(1, Math.min(99, qty + d)); document.getElementById('orderQty').textContent = qty; document.getElementById('totalAmount').textContent = '¥' + (qty * 1999).toLocaleString(); }
+
+async function submitOrder() {
+  const name = document.getElementById('orderName').value.trim();
+  const phone = document.getElementById('orderPhone').value.trim();
+  const addr = document.getElementById('orderAddr').value.trim();
+  const note = document.getElementById('orderNote').value.trim();
+  if (!name || !phone || !addr) { document.getElementById('orderErr').style.display = 'block'; return; }
+  document.getElementById('submitBtn').disabled = true; document.getElementById('submitBtn').textContent = '提交中...';
+  try {
+    const d = await apiFetch('/orders', { method: 'POST', body: JSON.stringify({ name, phone, address: addr, note, quantity: qty }) });
+    orderId = d.order.id;
+    // Go to step 2
+    goToStep(2);
+  } catch (e) { document.getElementById('orderErr').textContent = e.message; document.getElementById('orderErr').style.display = 'block'; document.getElementById('submitBtn').disabled = false; document.getElementById('submitBtn').textContent = '提交订单'; }
+}
+
+function goToStep(n) {
+  document.getElementById('step1Content').style.display = n === 1 ? '' : 'none';
+  document.getElementById('step2Content').style.display = n === 2 ? '' : 'none';
+  document.getElementById('step3Content').style.display = n === 3 ? '' : 'none';
+  document.getElementById('step1').className = n > 1 ? 'step done' : 'step active';
+  document.getElementById('step2').className = n === 2 ? 'step active' : n > 2 ? 'step done' : 'step';
+  document.getElementById('step3').className = n === 3 ? 'step active' : 'step';
+  document.querySelectorAll('.step-bar').forEach((b, i) => b.className = i < n - 1 ? 'step-bar done' : 'step-bar');
+  window.scrollTo(0, 0);
+  if (n === 2) document.getElementById('payAmount').textContent = '¥' + (qty * 1999).toLocaleString();
+}
+
+function selectPay(method, el) {
+  payMethod = method;
+  document.querySelectorAll('.payment-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  const icon = method === 'alipay' ? '💙' : '💚';
+  const name = method === 'alipay' ? '支付宝' : '微信';
+  document.getElementById('qrIcon').textContent = icon;
+  document.getElementById('qrText').innerHTML = `请使用 <strong style="color:var(--accent-soft);">${name}</strong> 扫码支付`;
+}
+
+async function confirmPayment() {
+  document.getElementById('payBtn').disabled = true; document.getElementById('payBtn').textContent = '确认中...';
+  try {
+    const payApi = payMethod === 'alipay' ? '/payment/alipay' : '/payment/wechat';
+    await apiFetch(payApi, { method: 'POST', body: JSON.stringify({ orderId }) });
+    await apiFetch('/payment/confirm', { method: 'POST', body: JSON.stringify({ orderId }) });
+    document.getElementById('orderNo').textContent = orderId;
+    goToStep(3);
+  } catch (e) { alert(e.message); document.getElementById('payBtn').disabled = false; document.getElementById('payBtn').textContent = '我已支付完成'; }
+}
+</script>
+</body>
+</html>
