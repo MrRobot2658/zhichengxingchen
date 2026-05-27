@@ -4,7 +4,7 @@
 
 知诚星辰智能（青岛）—— 专注消费级机器人大脑与机器人技能开发。首款产品 **Reachy Mini 桌面陪伴机器人**，定价 ¥1,999。
 
-> 官网：https://zhichengxingchen.vercel.app
+官网：https://starwithmind.com
 > GitHub：https://github.com/MrRobot2658/zhichengxingchen
 
 ---
@@ -122,5 +122,5 @@ git push origin main  # Vercel 自动部署
 
 ## 📞 联系
 
-- 📧 hello@zhichengxingchen.com
+- 📧 hello@starwithmind.com
 - 📍 中国 · 青岛
